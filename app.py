@@ -23,15 +23,21 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()
-    user_df = pd.DataFrame([data], columns=relevant_features)
-    user_anomaly_pred = model.predict(user_df)
-    user_anomaly_pred_binary = 1 if user_anomaly_pred == -1 else 0
-    
-    if user_anomaly_pred_binary == 1:
-        return jsonify({"result": "Anomaly detected: This transaction is flagged as an anomaly."})
-    else:
-        return jsonify({"result": "No anomaly detected: This transaction is normal."})
+    try:
+        data = request.get_json()
+        if not all(feature in data for feature in relevant_features):
+            return jsonify({"error": "Missing one or more required features in the request data."}), 400
+
+        user_df = pd.DataFrame([data], columns=relevant_features)
+        user_anomaly_pred = model.predict(user_df)
+        user_anomaly_pred_binary = 1 if user_anomaly_pred == -1 else 0
+        
+        if user_anomaly_pred_binary == 1:
+            return jsonify({"result": "Anomaly detected: This transaction is flagged as an anomaly."})
+        else:
+            return jsonify({"result": "No anomaly detected: This transaction is normal."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
