@@ -2,11 +2,16 @@ from flask import Flask, request, jsonify
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 import pickle
+import os
 
 app = Flask(__name__)
 
 # Load your model
-with open('C:/Users/aprav/Downloads/transaction_anomaly_model.pkl', 'rb') as model_file:
+model_path = 'models/transaction_anomaly_model.pkl'
+if not os.path.isfile(model_path):
+    raise FileNotFoundError(f"Model file not found at {model_path}")
+
+with open(model_path, 'rb') as model_file:
     model = pickle.load(model_file)
 
 # Relevant features used during training
